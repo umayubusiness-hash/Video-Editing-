@@ -1,0 +1,6 @@
+{
+  "name": "Video Editing Studio",
+  "description": "A professional, browser-based video editing suite with multi-track timeline, responsive glassmorphic UI, real-time filters, text/sticker overlays, and client-side canvas-driven video rendering and exporting.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
