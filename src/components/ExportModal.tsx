@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { Clip, ExportSettings, ProjectSettings } from '../types';
 import { drawProceduralVideo, drawProceduralImage } from '../utils/presets';
-import { AdsterraBanner } from './AdsterraMonetizer';
+import { AdsterraBanner, AdsterraNativeBanner, getActiveAdsterraConfig } from './AdsterraMonetizer';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -53,17 +53,10 @@ export default function ExportModal({
   const [hasAdFinished, setHasAdFinished] = useState(false);
 
   // Read Adsterra configuration on open
-  const [adsterraConfig, setAdsterraConfig] = useState<any>(null);
+  const [adsterraConfig, setAdsterraConfig] = useState<any>(getActiveAdsterraConfig);
   useEffect(() => {
     if (isOpen) {
-      try {
-        const saved = localStorage.getItem('adsterra_monetization_config');
-        if (saved) {
-          setAdsterraConfig(JSON.parse(saved));
-        }
-      } catch (e) {
-        console.error("Failed to parse adsterra config in modal", e);
-      }
+      setAdsterraConfig(getActiveAdsterraConfig());
     }
   }, [isOpen]);
 

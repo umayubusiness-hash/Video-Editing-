@@ -12,28 +12,57 @@ export interface AdsterraConfig {
   banner468x60Key: string;  // Paste 468x60 Banner Key here (32 chars)
   banner320x50Key: string;  // Paste 320x50 Banner Key here (32 chars)
   directLinkUrl: string;    // Paste Direct Link URL here
+  nativeBannerScript: string; // Native Banner Script URL
+  nativeBannerContainerId: string; // Native Banner Container ID
 }
 
 export const HARDCODED_ADSTERRA_CONFIG: AdsterraConfig = {
   enabled: true, // Turn TRUE to activate ads everywhere
   
   // 1. Popunder (पॉपअंडर स्क्रिप्ट): Paste full script or URL
-  popunderScript: ``, 
+  popunderScript: `https://pl30104297.effectivecpmnetwork.com/d6/2a/d0/d62ad012f6587adcb705ab36a0b74d3c.js`, 
   
   // 2. Social Bar (सोशल बार स्क्रिप्ट): Paste full script or URL
-  socialBarScript: ``, 
+  socialBarScript: `https://pl30104360.effectivecpmnetwork.com/dd/22/b3/dd22b318921f0a8a4d7cf73cf3c661e7.js`, 
   
   // 3. Banner Keys (बैनर कीज़): 32 character key from your Adsterra dashboard
-  banner300x250Key: ``, // e.g. "5d5a9d821379b398df3634045f2cf212"
-  banner468x60Key: ``,  // e.g. "8fa160912f2c81893d594fbc266f81b1"
-  banner320x50Key: ``,  // e.g. "05df0bc8e56b8cdab8012ba4d7e98188"
+  banner300x250Key: `4389be4bf775e84160a52342bdc7e847`, // Banner 300x250 Key
+  banner468x60Key: `3495561ddc14e1f009cd5e0c801a34d2`,  // Banner 468x60 Key
+  banner320x50Key: `6f083136706ab0055c231928dd7c7701`,  // Banner 320x50 Key
   
   // 4. Direct Link (डायरेक्ट लिंक): Open on bypass button click
-  directLinkUrl: ``     // e.g. "https://www.highperformanceformat.com/xxxx/direct-link"
+  directLinkUrl: `https://www.effectivecpmnetwork.com/tq576e9rc?key=a20845a649805d02cb54b2827bdbc91b`,
+
+  // 5. Native Banner
+  nativeBannerScript: `https://pl30104359.effectivecpmnetwork.com/31c206580630f0a3aab2a9736f2a5281/invoke.js`,
+  nativeBannerContainerId: `container-31c206580630f0a3aab2a9736f2a5281`
 };
 
+export function getActiveAdsterraConfig(): AdsterraConfig {
+  try {
+    const saved = localStorage.getItem('adsterra_monetization_config');
+    if (saved) {
+      return { ...HARDCODED_ADSTERRA_CONFIG, ...JSON.parse(saved) };
+    }
+  } catch (e) {}
+  return HARDCODED_ADSTERRA_CONFIG;
+}
+
 export function useAdsterra() {
-  const [config] = useState<AdsterraConfig>(HARDCODED_ADSTERRA_CONFIG);
+  const [config, setConfig] = useState<AdsterraConfig>(getActiveAdsterraConfig);
+
+  useEffect(() => {
+    const handleStorage = () => {
+      setConfig(getActiveAdsterraConfig());
+    };
+    window.addEventListener('storage', handleStorage);
+    // Periodically sync if needed
+    const interval = setInterval(handleStorage, 2000);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Dynamically inject popunder & social bar global scripts
   useEffect(() => {
@@ -144,6 +173,52 @@ export const AdsterraBanner: React.FC<AdsterraBannerProps> = ({ zoneKey, width, 
     <div 
       className="mx-auto flex flex-col items-center justify-center overflow-hidden bg-black/40 border border-zinc-900 rounded-xl"
       style={{ width: `${width}px`, height: `${height}px` }}
+    >
+      <div ref={containerRef} className="w-full h-full" />
+    </div>
+  );
+};
+
+interface AdsterraNativeBannerProps {
+  scriptUrl: string;
+  containerId: string;
+}
+
+export const AdsterraNativeBanner: React.FC<AdsterraNativeBannerProps> = ({ scriptUrl, containerId }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!scriptUrl || !containerId || !containerRef.current) {
+      return;
+    }
+
+    containerRef.current.innerHTML = '';
+
+    const targetDiv = document.createElement('div');
+    targetDiv.id = containerId;
+    containerRef.current.appendChild(targetDiv);
+
+    const script = document.createElement('script');
+    script.src = scriptUrl;
+    script.async = true;
+    script.setAttribute('data-cfasync', 'false');
+
+    containerRef.current.appendChild(script);
+
+    return () => {
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
+      }
+    };
+  }, [scriptUrl, containerId]);
+
+  if (!scriptUrl || !containerId) {
+    return null;
+  }
+
+  return (
+    <div 
+      className="mx-auto flex flex-col items-center justify-center overflow-hidden bg-black/40 border border-zinc-900 rounded-xl p-2 w-full max-w-[320px] min-h-[100px]"
     >
       <div ref={containerRef} className="w-full h-full" />
     </div>

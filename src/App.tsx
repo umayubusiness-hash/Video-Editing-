@@ -915,11 +915,19 @@ export default function App() {
               <p className="text-[10px] text-zinc-500 hidden sm:block">Footer Banner (468x60 px) is live on your public site</p>
             </div>
             
-            <div className="flex-1 max-w-[468px] w-full">
+            <div className="flex-1 max-w-[468px] w-full hidden md:block">
               <AdsterraBanner 
                 zoneKey={adsterraConfig.banner468x60Key} 
                 width={468} 
                 height={60} 
+              />
+            </div>
+            
+            <div className="flex-1 max-w-[320px] w-full block md:hidden">
+              <AdsterraBanner 
+                zoneKey={adsterraConfig.banner320x50Key} 
+                width={320} 
+                height={50} 
               />
             </div>
 

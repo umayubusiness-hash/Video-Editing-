@@ -37,7 +37,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { Clip, ClipType, ToolItem, ProjectSettings } from '../types';
-import { AdsterraBanner } from './AdsterraMonetizer';
+import { AdsterraBanner, AdsterraNativeBanner, getActiveAdsterraConfig } from './AdsterraMonetizer';
 
 interface SidebarProps {
   selectedClip: Clip | null;
@@ -85,20 +85,12 @@ export default function Sidebar({
   const [activeTab, setActiveTab] = useState<'media' | 'edit' | 'overlay' | 'text' | 'graphic' | 'audio' | 'settings' | 'transitions' | 'captions' | 'templates'>('media');
   
   // Adsterra local storage reader
-  const [adsterraConfig, setAdsterraConfig] = useState<any>(() => {
-    try {
-      const saved = localStorage.getItem('adsterra_monetization_config');
-      return saved ? JSON.parse(saved) : null;
-    } catch (e) {
-      return null;
-    }
-  });
+  const [adsterraConfig, setAdsterraConfig] = useState<any>(getActiveAdsterraConfig);
 
   useEffect(() => {
     const handleStorage = () => {
       try {
-        const saved = localStorage.getItem('adsterra_monetization_config');
-        if (saved) setAdsterraConfig(JSON.parse(saved));
+        setAdsterraConfig(getActiveAdsterraConfig());
       } catch (e) {}
     };
     window.addEventListener('storage', handleStorage);
@@ -921,17 +913,48 @@ export default function Sidebar({
 
               {/* Adsterra 300x250 Sidebar Banner integration */}
               {adsterraConfig?.enabled && (
-                <div className="border-t border-zinc-850 dark:border-zinc-900/60 pt-4 mt-4 text-center">
-                  <div className="text-[9px] uppercase font-black tracking-widest text-amber-500 mb-2 flex items-center justify-center gap-1.5 animate-pulse">
-                    <span>💸</span> Sponsor Ads space (300x250)
+                <div className="border-t border-zinc-850 dark:border-zinc-900/60 pt-4 mt-4 space-y-4 text-center">
+                  <div>
+                    <div className="text-[9px] uppercase font-black tracking-widest text-amber-500 mb-2 flex items-center justify-center gap-1.5 animate-pulse">
+                      <span>💸</span> Sponsor Ads space (300x250)
+                    </div>
+                    <div className="w-full max-w-[300px] mx-auto overflow-hidden rounded-xl">
+                      <AdsterraBanner 
+                        zoneKey={adsterraConfig.banner300x250Key} 
+                        width={300} 
+                        height={250} 
+                      />
+                    </div>
                   </div>
-                  <div className="w-full max-w-[300px] mx-auto overflow-hidden rounded-xl">
-                    <AdsterraBanner 
-                      zoneKey={adsterraConfig.banner300x250Key} 
-                      width={300} 
-                      height={250} 
-                    />
-                  </div>
+
+                  {/* Native Banner integration */}
+                  {adsterraConfig.nativeBannerScript && adsterraConfig.nativeBannerContainerId && (
+                    <div className="pt-2">
+                      <div className="text-[9px] uppercase font-black tracking-widest text-indigo-400 mb-2 flex items-center justify-center gap-1.5 animate-pulse">
+                        <span>📰</span> Native Sponsor Banner
+                      </div>
+                      <div className="w-full max-w-[300px] mx-auto overflow-hidden rounded-xl">
+                        <AdsterraNativeBanner 
+                          scriptUrl={adsterraConfig.nativeBannerScript}
+                          containerId={adsterraConfig.nativeBannerContainerId}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Smartlink Bypass Offer */}
+                  {adsterraConfig.directLinkUrl && (
+                    <div className="pt-2">
+                      <a 
+                        href={adsterraConfig.directLinkUrl}
+                        target="_blank"
+                        referrerPolicy="no-referrer"
+                        className="inline-flex w-full max-w-[300px] items-center justify-center gap-2 p-2.5 rounded-lg border border-amber-500/50 bg-amber-500/10 text-amber-400 hover:bg-amber-500 hover:text-zinc-950 font-bold text-xs transition duration-200 active:scale-95 shadow-sm shadow-amber-500/10"
+                      >
+                        ⚡ Unlock Premium Video Templates
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1194,6 +1217,137 @@ export default function Sidebar({
                   <span className="text-xs font-extrabold text-cyan-500 font-mono w-10 text-right">
                     {projectSettings.duration}s
                   </span>
+                </div>
+              </div>
+
+              {/* Adsterra Live Management Form */}
+              <div className={`space-y-3 border-t pt-4 ${isDark ? 'border-zinc-900' : 'border-slate-150'}`}>
+                <div className="flex justify-between items-center">
+                  <label className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>Adsterra Monetization</label>
+                  <span className="text-[9px] bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 font-bold px-1.5 py-0.5 rounded uppercase">Active</span>
+                </div>
+                
+                <div className="space-y-2 text-left">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-zinc-400">Enable Monetized Ads</span>
+                    <input 
+                      type="checkbox"
+                      checked={adsterraConfig?.enabled}
+                      onChange={(e) => {
+                        const newConf = { ...adsterraConfig, enabled: e.target.checked };
+                        setAdsterraConfig(newConf);
+                        localStorage.setItem('adsterra_monetization_config', JSON.stringify(newConf));
+                        window.dispatchEvent(new Event('storage'));
+                      }}
+                      className="rounded accent-cyan-500 w-4 h-4 cursor-pointer"
+                    />
+                  </div>
+
+                  <details className="group border border-zinc-800/40 dark:border-zinc-900/30 rounded-lg p-2 bg-black/10">
+                    <summary className="text-[10px] font-bold text-zinc-400 cursor-pointer select-none outline-none flex items-center justify-between group-open:mb-2">
+                      <span>🔧 Live Customize Keys</span>
+                      <span className="text-[9px] text-cyan-500 group-open:hidden">Show</span>
+                      <span className="text-[9px] text-cyan-500 hidden group-open:inline">Hide</span>
+                    </summary>
+                    
+                    <div className="space-y-2.5 text-xs pt-1">
+                      <div className="space-y-1">
+                        <label className="text-[9px] text-zinc-500 font-bold uppercase block">468x60 Banner Key</label>
+                        <input 
+                          type="text"
+                          value={adsterraConfig?.banner468x60Key || ''}
+                          onChange={(e) => {
+                            const newConf = { ...adsterraConfig, banner468x60Key: e.target.value };
+                            setAdsterraConfig(newConf);
+                            localStorage.setItem('adsterra_monetization_config', JSON.stringify(newConf));
+                            window.dispatchEvent(new Event('storage'));
+                          }}
+                          className="w-full bg-zinc-900/60 border border-zinc-800 rounded px-2 py-1 text-zinc-300 focus:outline-none focus:border-cyan-500 font-mono text-[11px]"
+                          placeholder="Adsterra 468x60 key"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[9px] text-zinc-500 font-bold uppercase block">300x250 Banner Key</label>
+                        <input 
+                          type="text"
+                          value={adsterraConfig?.banner300x250Key || ''}
+                          onChange={(e) => {
+                            const newConf = { ...adsterraConfig, banner300x250Key: e.target.value };
+                            setAdsterraConfig(newConf);
+                            localStorage.setItem('adsterra_monetization_config', JSON.stringify(newConf));
+                            window.dispatchEvent(new Event('storage'));
+                          }}
+                          className="w-full bg-zinc-900/60 border border-zinc-800 rounded px-2 py-1 text-zinc-300 focus:outline-none focus:border-cyan-500 font-mono text-[11px]"
+                          placeholder="Adsterra 300x250 key"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[9px] text-zinc-500 font-bold uppercase block">320x50 Banner Key</label>
+                        <input 
+                          type="text"
+                          value={adsterraConfig?.banner320x50Key || ''}
+                          onChange={(e) => {
+                            const newConf = { ...adsterraConfig, banner320x50Key: e.target.value };
+                            setAdsterraConfig(newConf);
+                            localStorage.setItem('adsterra_monetization_config', JSON.stringify(newConf));
+                            window.dispatchEvent(new Event('storage'));
+                          }}
+                          className="w-full bg-zinc-900/60 border border-zinc-800 rounded px-2 py-1 text-zinc-300 focus:outline-none focus:border-cyan-500 font-mono text-[11px]"
+                          placeholder="Adsterra 320x50 key"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[9px] text-zinc-500 font-bold uppercase block">Smartlink / Direct Link URL</label>
+                        <input 
+                          type="text"
+                          value={adsterraConfig?.directLinkUrl || ''}
+                          onChange={(e) => {
+                            const newConf = { ...adsterraConfig, directLinkUrl: e.target.value };
+                            setAdsterraConfig(newConf);
+                            localStorage.setItem('adsterra_monetization_config', JSON.stringify(newConf));
+                            window.dispatchEvent(new Event('storage'));
+                          }}
+                          className="w-full bg-zinc-900/60 border border-zinc-800 rounded px-2 py-1 text-zinc-300 focus:outline-none focus:border-cyan-500 font-mono text-[11px]"
+                          placeholder="https://www.effectivecpmnetwork.com/..."
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[9px] text-zinc-500 font-bold uppercase block">Native Banner Script URL</label>
+                        <input 
+                          type="text"
+                          value={adsterraConfig?.nativeBannerScript || ''}
+                          onChange={(e) => {
+                            const newConf = { ...adsterraConfig, nativeBannerScript: e.target.value };
+                            setAdsterraConfig(newConf);
+                            localStorage.setItem('adsterra_monetization_config', JSON.stringify(newConf));
+                            window.dispatchEvent(new Event('storage'));
+                          }}
+                          className="w-full bg-zinc-900/60 border border-zinc-800 rounded px-2 py-1 text-zinc-300 focus:outline-none focus:border-cyan-500 font-mono text-[11px]"
+                          placeholder="https://pl30104359.effectivecpmnetwork.com/..."
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[9px] text-zinc-500 font-bold uppercase block">Native Banner Container ID</label>
+                        <input 
+                          type="text"
+                          value={adsterraConfig?.nativeBannerContainerId || ''}
+                          onChange={(e) => {
+                            const newConf = { ...adsterraConfig, nativeBannerContainerId: e.target.value };
+                            setAdsterraConfig(newConf);
+                            localStorage.setItem('adsterra_monetization_config', JSON.stringify(newConf));
+                            window.dispatchEvent(new Event('storage'));
+                          }}
+                          className="w-full bg-zinc-900/60 border border-zinc-800 rounded px-2 py-1 text-zinc-300 focus:outline-none focus:border-cyan-500 font-mono text-[11px]"
+                          placeholder="container-31c20658..."
+                        />
+                      </div>
+                    </div>
+                  </details>
                 </div>
               </div>
             </div>
