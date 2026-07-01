@@ -79,6 +79,12 @@ export function useAdsterra() {
           script.src = scriptContent;
           script.async = true;
           script.id = id;
+          script.onerror = (e) => {
+            try {
+              e.preventDefault();
+              e.stopPropagation();
+            } catch (err) {}
+          };
           document.head.appendChild(script);
           injectedElements.push(script);
         } else {
@@ -88,6 +94,12 @@ export function useAdsterra() {
             script.src = srcMatch[1];
             script.async = true;
             script.id = id;
+            script.onerror = (e) => {
+              try {
+                e.preventDefault();
+                e.stopPropagation();
+              } catch (err) {}
+            };
             document.head.appendChild(script);
             injectedElements.push(script);
           } else {
@@ -96,6 +108,12 @@ export function useAdsterra() {
             script.type = 'text/javascript';
             script.innerHTML = cleanJS;
             script.id = id;
+            script.onerror = (e) => {
+              try {
+                e.preventDefault();
+                e.stopPropagation();
+              } catch (err) {}
+            };
             document.head.appendChild(script);
             injectedElements.push(script);
           }
@@ -154,6 +172,12 @@ export const AdsterraBanner: React.FC<AdsterraBannerProps> = ({ zoneKey, width, 
     scriptInvoke.type = 'text/javascript';
     scriptInvoke.src = `//www.highperformanceformat.com/${zoneKey.trim()}/invoke.js`;
     scriptInvoke.async = true;
+    scriptInvoke.onerror = (e) => {
+      try {
+        e.preventDefault();
+        e.stopPropagation();
+      } catch (err) {}
+    };
 
     containerRef.current.appendChild(scriptConfig);
     containerRef.current.appendChild(scriptInvoke);
@@ -202,6 +226,12 @@ export const AdsterraNativeBanner: React.FC<AdsterraNativeBannerProps> = ({ scri
     script.src = scriptUrl;
     script.async = true;
     script.setAttribute('data-cfasync', 'false');
+    script.onerror = (e) => {
+      try {
+        e.preventDefault();
+        e.stopPropagation();
+      } catch (err) {}
+    };
 
     containerRef.current.appendChild(script);
 

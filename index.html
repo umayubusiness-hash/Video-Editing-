@@ -4,6 +4,51 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Google AI Studio App</title>
+    <script>
+      // Global suppression of third-party ad/script and adblocker errors
+      window.addEventListener('error', function(e) {
+        if (
+          e.message === 'Script error.' || 
+          (e.message && e.message.indexOf('Script error') !== -1) ||
+          (e.filename && (
+            e.filename.indexOf('effectivecpmnetwork') !== -1 || 
+            e.filename.indexOf('highperformanceformat') !== -1 ||
+            e.filename.indexOf('invoke.js') !== -1
+          ))
+        ) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          return true;
+        }
+      }, true);
+      window.addEventListener('unhandledrejection', function(e) {
+        if (
+          e.reason && (
+            (e.reason.message && e.reason.message.indexOf('Script error') !== -1) ||
+            (e.reason.stack && (
+              e.reason.stack.indexOf('effectivecpmnetwork') !== -1 ||
+              e.reason.stack.indexOf('highperformanceformat') !== -1
+            ))
+          )
+        ) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          return true;
+        }
+      }, true);
+      window.onerror = function(message, source, lineno, colno, error) {
+        var msg = String(message || '');
+        var src = String(source || '');
+        if (
+          msg.indexOf('Script error') !== -1 || 
+          src.indexOf('effectivecpmnetwork') !== -1 || 
+          src.indexOf('highperformanceformat') !== -1 ||
+          src.indexOf('invoke.js') !== -1
+        ) {
+          return true; // Suppresses browser console error logging
+        }
+      };
+    </script>
   </head>
   <body>
     <div id="root"></div>
